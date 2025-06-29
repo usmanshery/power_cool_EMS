@@ -9,3 +9,5 @@ Functions:
 Planned features:
 - network based logging to external system
 - adding LED matrix for system stats
+- SD Card based local Data Storage Facility
+- Inverter R32 port scanning for live inverter stats for sending out events such as when solar power is low which can be used to control heavy load devices automatically
