@@ -3,7 +3,8 @@
 Network::Network(){}
 
 bool Network::Connect(){
-    led.Set(Led::YELLOW);
+    // led.Set(Led::YELLOW);
+    ledLogger.DisplayPreset(LedDigital::PresetName::WIFI_CONNECT);
     logger.log("RSSI: %d", WiFi.RSSI());
     logger.log("Connecting to: '%s'", SSID);
 
@@ -16,7 +17,7 @@ bool Network::Connect(){
     while (WiFi.status() != WL_CONNECTED && retry < 240) {
         delay(500);
         logger.log(".");
-        led.Toggle();
+        // led.Toggle();
         retry++;
     }
     if(WiFi.status() != WL_CONNECTED){
@@ -28,7 +29,8 @@ bool Network::Connect(){
 }
 
 bool Network::SyncSysTime(){
-    led.Set(Led::CYAN);
+    // led.Set(Led::CYAN);
+    ledLogger.DisplayPreset(LedDigital::PresetName::TIME_SYNC);
     logger.log("Syncing time...");
     configTime(GMT_OFFSET_SEC, 0, NTP_SERVER);
     // Wait for time to sync (up to 10 seconds)
@@ -37,7 +39,7 @@ bool Network::SyncSysTime(){
         delay(500);
         logger.log(".");
         retry++;
-        led.Toggle();
+        // led.Toggle();
     }
     
     if(time(nullptr) < 24 * 3600){
@@ -46,13 +48,14 @@ bool Network::SyncSysTime(){
     }
 
     logger.log("Time sync complete.");
-    led.Set(Led::MEGENTA);
+    // led.Set(Led::MEGENTA);
     delay(1000);
     return true;
 }
 
 bool Network::ReadTime(){
-    led.Set(Led::CYAN);
+    // led.Set(Led::CYAN);
+    ledLogger.DisplayPreset(LedDigital::PresetName::READ_TIME);
     bool success = false;
     for(int i = 0; i < 3; i++){
         if (getLocalTime(&currentTime)){

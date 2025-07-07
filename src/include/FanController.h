@@ -3,9 +3,11 @@
 #include "Config.h"
 #include "TemperatureManager.h"
 #include "Network.h"
+#include "LedDigital.h"
 
 class FanController {
 
+    LedDigital ledLogger;
     float currentTemp, prevTemp;
     float tempHistory[TEMP_HISTORY_BUFFER];
     int tempHistoryIndex;
@@ -29,5 +31,6 @@ private:
     float ComputeFirstDerivative();
     float ComputeSecondDerivative();
     float GetPrevTemp(int offset);
+    void SetFanSpeed(int speed);
 
 };
