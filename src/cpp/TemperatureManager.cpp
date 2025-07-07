@@ -1,5 +1,5 @@
 #include "../include/TemperatureManager.h"
-#include "../include/Led.h"
+// #include "../include/Led.h"
 #include "../include/Config.h"
 
 using std::isnan;
@@ -21,7 +21,7 @@ TemperatureManager::TemperatureManager(){
 }
 
 bool TemperatureManager::Init(){
-    led.Set(Led::BLUE);
+    // led.Set(Led::BLUE);
     delay(500);
     Wire.begin(CUSTOM_SDA_PIN, CUSTOM_SCL_PIN);
     if (!mlx.begin()) {

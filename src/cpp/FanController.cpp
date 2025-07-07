@@ -1,13 +1,18 @@
 #include "../include/FanController.h"
 
 void FanController::Init(){
+    ledLogger = LedDigital();
     fanSpeed = FAN_SPEED_MAX;
     relayState = true;
     fanToggle = true;
-    pinMode(FAN_PWM_PIN, OUTPUT);
+    ledcSetup(FAN_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(FAN_PWM_PIN, FAN_PWM_CHANNEL);
+    ledcSetup(FAN_PWM_CHANNEL_INV, PWM_FREQ, PWM_RESOLUTION);
+    ledcAttachPin(FAN_PWM_PIN_INV, FAN_PWM_CHANNEL_INV);
+    // pinMode(FAN_PWM_PIN, OUTPUT);
+    // pinMode(FAN_PWM_PIN_INV, OUTPUT);
     pinMode(RELAY_PIN, OUTPUT);
-    analogWrite(FAN_PWM_PIN, fanSpeed);
-    digitalWrite(RELAY_PIN, (uint8_t)(relayState & 1));
+    SetFanSpeed(fanSpeed);
 }
 
 void FanController::UpdateFanSpeed(float newCurrentTemp, int systemTimeDaySec){
@@ -54,7 +59,7 @@ void FanController::UpdateFanSpeed(float newCurrentTemp, int systemTimeDaySec){
                 // temp increasing
                 // todo: increase fan speed by 10%
                 if(fanSpeed < FAN_SPEED_MAX){
-                    fanSpeed += FAN_SPEED_MAX * 0.1;
+                    fanSpeed += FAN_SPEED_INTERVAL;
                 }
                 if(fanSpeed > FAN_SPEED_MAX){
                     fanSpeed = FAN_SPEED_MAX;
@@ -63,7 +68,7 @@ void FanController::UpdateFanSpeed(float newCurrentTemp, int systemTimeDaySec){
                 // no significant change
                 // todo: decrease fan speed by 10%
                 if(fanSpeed > FAN_SPEED_MIN){
-                    fanSpeed -= FAN_SPEED_MAX * 0.1;
+                    fanSpeed -= FAN_SPEED_INTERVAL;
                 }
                 if(fanSpeed < FAN_SPEED_MIN){
                     fanSpeed = FAN_SPEED_MIN;
@@ -71,17 +76,10 @@ void FanController::UpdateFanSpeed(float newCurrentTemp, int systemTimeDaySec){
             }
         }
 
-        if(fanSpeed <= 0){
-            relayState = false;
-        }else{
-            relayState = true;
-        }
-
-        analogWrite(FAN_PWM_PIN, fanSpeed);
-        digitalWrite(RELAY_PIN, (uint8_t)(relayState & 1));
+        SetFanSpeed(fanSpeed);
     }
-    
-    logger.log("Temperature: %.2f | Fan: %d | Relay: %d", newCurrentTemp, fanSpeed, relayState);
+    ledLogger.SetDisplay(newCurrentTemp, fanSpeed, relayState);
+    logger.log("Temperature: %.2f | Fan: %d% | Relay: %d", newCurrentTemp, fanSpeed, relayState);
 }
 
 void FanController::Reset(float currentTemperature){
@@ -118,5 +116,20 @@ float FanController::GetPrevTemp(int offset){
 }
 
 bool FanController::GetState(){
-    this->fanToggle;
+    return this->fanToggle;
+}
+
+void FanController::SetFanSpeed(int fanSpeed){
+    if(fanSpeed <= 0){
+        relayState = false;
+    }else{
+        relayState = true;
+    }
+
+    int dutyCycle = MAX_DUTY_CYCLE * fanSpeed / 100;
+    int dutyCycleInv = MAX_DUTY_CYCLE - dutyCycle;
+    ledcWrite(FAN_PWM_CHANNEL, dutyCycle);
+    ledcWrite(FAN_PWM_CHANNEL_INV, dutyCycleInv);
+    logger.log("Duty cycle %d, inv %d for fan speed %d", dutyCycle, dutyCycleInv, fanSpeed);
+    digitalWrite(RELAY_PIN, (uint8_t)(relayState & 1));
 }
